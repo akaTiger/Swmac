@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import ttk
 from mojang import MojangAPI
 from PIL import Image, ImageTk
 import io
@@ -23,17 +24,21 @@ class printJsonErr(Exception):
     pass
 
 def superAlth(Alst):
-            new = []
-            while len(Alst) > 5:
-                new.append([Alst[0], Alst[1], Alst[2], Alst[3], Alst[4]])
-                for i in range(5):
-                    Alst.pop(0)
-            lastList = []
-            for i in range(len(Alst)):
-                lastList.append(Alst[0])
-                Alst.pop(0)
-            new.append(lastList)
-            return new
+    colNumber = 15
+    new = []
+    while len(Alst) > colNumber:
+        innerLst = []
+        for i in range(colNumber):
+            innerLst.append(Alst[i])
+        new.append(innerLst)
+        for i in range(colNumber):
+            Alst.pop(0)
+    lastList = []
+    for i in range(len(Alst)):
+        lastList.append(Alst[0])
+        Alst.pop(0)
+    new.append(lastList)
+    return new
 
 def addToChrList(nameID="TkinterDefault"):
     try:
@@ -74,6 +79,45 @@ def addToChrList(nameID="TkinterDefault"):
     except imageIndiviCanvasErr:
         errorVar.set("imageIndiviCanvasErr")
 
+def canvasPutDownForLst(fiveLst):
+    for row in range(len(fiveLst)):
+            for col in range(len(fiveLst[row])):
+                rowFrame = row
+                columnFrame = col
+                uuid = fiveLst[row][col]
+                
+                try:
+                    url = "https://crafatar.com/avatars/" + uuid
+                    imageTKForm = ImageTk.PhotoImage(Image.open(io.BytesIO(requests.get(url).content)).resize((40, 40)))
+                    try:
+                        imageIndiviCanvas = tk.Frame(picFrame)
+                        imageIndiviCanvas.grid(column=columnFrame, row=rowFrame)
+                    except:
+                        raise imageIndiviCanvasErr
+                        
+                    try:
+                        
+                        imageInfo = tk.Label(imageIndiviCanvas, image=imageTKForm)
+                        imageInfo.image = imageTKForm
+                        imageInfo.grid(column=0, row=0)
+                        
+                        try:
+                            imageName = tk.Label(imageIndiviCanvas, text=MojangAPI.get_profile(uuid).name, width=10, height=3)
+                            imageName.grid(column=0, row=1)
+                            mcFampor.update()
+                        except:
+                            imageName = tk.Label(imageIndiviCanvas, text="Invalid User", width=10, height=3)
+                            imageName.grid(column=0, row=1)
+                            mcFampor.update()
+                            errorVar.set("invalidName")
+                        
+                    except:
+                        raise imagePlaceErr
+                except:
+                    errorVar.set("imageDownloadErr: Image Download Error")
+                
+                
+
 def getPor(uuid, playerLst):
     try:
         url = "https://crafatar.com/avatars/" + uuid
@@ -90,8 +134,14 @@ def getPor(uuid, playerLst):
                 if fiveLst[row][col] == MojangAPI.get_profile(uuid).name:
                     rowFrame = row
                     columnFrame = col
+    except imageDownloadErr:
+        print("imageDownloadErr")
+    except imagePlaceErr:
+        print("imagePlaceErr")
+    except imageIndiviCanvasErr:
+        print("imageIndiviCanvasErr")
     except:
-        raise rowColumnArrangeErr
+        raise printJsonErr
     
     try:
         imageIndiviCanvas = tk.Frame(picFrame)
@@ -111,18 +161,19 @@ def getPor(uuid, playerLst):
 
 def jsonSearch():
     uuidLst = []
+    openF = "/Users/tiger/Downloads/whitelist.json"
+    # openF = uuidEntry.get()
     try:
         try:
-            with open(uuidEntry.get(),'r') as jsonFile:
+            with open(openF,'r') as jsonFile:
                 loadDict = json.load(jsonFile)
                 for i in loadDict:
                     uuidLst.append(i["uuid"])
         except:
             raise readJsonErr
         try:
-            for i in uuidLst:
-                # print(i)
-                addToChrList(nameID=i)
+            finalA = superAlth(uuidLst)
+            canvasPutDownForLst(finalA)
         except:
             raise printJsonErr
     except readJsonErr:
@@ -133,15 +184,26 @@ if __name__ == "__main__":
     projName = "Server Whitelist to Minecraft Avatars Converter"
     mcFampor = tk.Tk()
     mcFampor.title(projName)
-    mcFampor.geometry("500x300")
+    mcFampor.geometry("1920x1080")
+    
+    bigFrame = tk.Frame(mcFampor)
+    bigFrame.pack(fill="both", expand=1)
+    scrollCan = tk.Canvas(bigFrame)
+    scrollCan.pack(side="left", fill="both", expand=1)
+    scrollMain = ttk.Scrollbar(bigFrame, orient="vertical", command=scrollCan.yview)
+    scrollMain.pack(side="right", fill="y")
+    scrollCan.configure(yscrollcommand=scrollMain.set)
+    scrollCan.bind("<Configure>", lambda e: scrollCan.configure(scrollregion=scrollCan.bbox("all")))
+    secondFrame = tk.Frame(scrollCan)
+    scrollCan.create_window((950,0), window=secondFrame, anchor="n")
     
     errorVar = tk.StringVar()
     errorVar.set("")
     playerUuidVar = tk.StringVar()
     playerUuidVar.set("")
     
-    picFrame = tk.Frame(mcFampor)
-    mainFrame = tk.Frame(mcFampor)
+    picFrame = tk.Frame(secondFrame)
+    mainFrame = tk.Frame(secondFrame)
     picFrame.pack()
     mainFrame.pack()
     
