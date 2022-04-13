@@ -8,6 +8,7 @@ Python3, PIL, MojangAPI is required:
 ```
 pip3 install Pillow
 pip3 install mojang
+pip3 install requests
 ```
 
 Start Swmac in Python environment:
