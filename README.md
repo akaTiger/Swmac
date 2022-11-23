@@ -1,8 +1,6 @@
 # Swmac
 ***S**erver **w**hitelist to **m**inecraft **a**vatars **c**onverter*
 
-![](https://websiteimage-1258728659.cos.na-siliconvalley.myqcloud.com/Swmac.png)
-
 Python3, PIL, MojangAPI is required:
 
 ```
